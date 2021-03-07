@@ -25,6 +25,9 @@ dependencies:
     sdk: flutter
   webfeed: ^0.6.0
   http: ^0.13.0
+  progress_dialog: ^1.2.4
+  fluttertoast: ^7.1.6
+
 
 
   # The following adds the Cupertino Icons font to your application.

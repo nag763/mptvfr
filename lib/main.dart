@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:webfeed/webfeed.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'programme.dart';
+import 'package:progress_dialog/progress_dialog.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 void main() {
   runApp(MyApp());
@@ -17,7 +21,7 @@ String numberToReadableDTString(int number) {
   if (9 < number) {
     return number.toString();
   } else {
-    return '0${number}';
+    return '0$number';
   }
 }
 
@@ -51,26 +55,89 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  Map<String, List<Programme>> classedItems;
-  List<Programme> currentItems;
-  List<String> keys;
-  String currentKey;
+  Map<String, List<Programme>> classedItems = {};
+  List<Programme> currentItems = [];
+  List<String> keys = [];
+  String currentKey = '';
   int currentItemCount = 0;
+  static const List<String> DT_SELECTORS = ['Matinée', 'Midi', 'Après-Midi', 'Soirée', 'Deuxième partie de soirée', 'Aucun'];
+  String currentDTSelector = DT_SELECTORS.last;
 
   void changeList(int keyNumber) {
     currentKey = keys[keyNumber];
     currentItems = classedItems[currentKey];
+    if(currentDTSelector != 'Aucun'){
+      currentItems = sortedAfterDT(currentItems);
+    }
     currentItemCount = currentItems.length;
   }
 
+  List<Programme> sortedAfterDT(List<Programme> itemList){
+    DateTimeRange dtSelector;
+    final formatter = DateFormat('H:m');
+    switch(currentDTSelector){
+      case 'Matinée':
+        dtSelector = new DateTimeRange(start: formatter.parse('7:30'), end: formatter.parse('11:30'));
+        break;
+      case 'Midi':
+        dtSelector = new DateTimeRange(start: formatter.parse('11:30'), end: formatter.parse('13:30'));
+        break;
+      case 'Après-Midi':
+        dtSelector = new DateTimeRange(start: formatter.parse('13:30'), end: formatter.parse('20:30'));
+        break;
+      case 'Soirée':
+        dtSelector = new DateTimeRange(start: formatter.parse('20:30'), end: formatter.parse('22:30'));
+        break;
+      case 'Deuxième partie de soirée':
+      dtSelector = new DateTimeRange(start: formatter.parse('22:30'), end: formatter.parse('23:59'));
+        break;
+      case 'Aucun':
+        break;
+    }
+    if(currentDTSelector != 'Aucun') {
+      var newItemList = itemList.where(
+              (element) => element.heureDebut.isAfter(dtSelector.start) && element.heureDebut.isBefore(dtSelector.end)
+      ).toList();
+      return newItemList;
+    }
+  }
+
   Future<void> fetchRSS() async {
-    var response =
-        await http.get(feedUrl, headers: {'Content-Type': 'charset=utf-8'});
-    var _rssFeed = RssFeed.parse(Utf8Decoder().convert(response.bodyBytes));
-    classedItems = Programme.classedListFromRSSFeed(_rssFeed.items);
-    keys = classedItems.keys.toList();
-    setState(() {
-      changeList(0);
+    final ProgressDialog pr = ProgressDialog(context,
+        isDismissible: false, type: ProgressDialogType.Normal);
+    pr.style(
+      message: 'Patientez pendant la récupération des informations.',
+    );
+    await pr.show();
+    await pr.show().then((_) {
+      http.get(feedUrl, headers: {'Content-Type': 'charset=utf-8'}).then(
+          (response) {
+        if (200 <= response.statusCode && response.statusCode < 300) {
+          var _rssFeed =
+              RssFeed.parse(Utf8Decoder().convert(response.bodyBytes));
+          classedItems = Programme.classedListFromRSSFeed(_rssFeed.items);
+          keys = classedItems.keys.toList();
+          setState(() {
+            changeList(0);
+          });
+          pr.hide();
+        } else {
+          Fluttertoast.showToast(
+            msg:
+                "[${response.statusCode}] Nous n'avons pas pu joindre le serveur.",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+          );
+          pr.hide();
+        }
+      }).onError((error, stackTrace) {
+        Fluttertoast.showToast(
+          msg: "Une erreur est survenue.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+        );
+        pr.hide();
+      });
     });
   }
 
@@ -119,6 +186,43 @@ class _MyHomePageState extends State<MyHomePage> {
               ListTile(
                 leading: Icon(Icons.web),
                 title: Text(widget.title),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  DropdownButton<String>(
+                    icon: Icon(Icons.airplay),
+                    onChanged: (String newValue){
+                      setState(() {
+                        changeList(keys.indexOf(newValue));
+                      });
+                    },
+                    items: keys.map<DropdownMenuItem<String>>((value) {
+                      return DropdownMenuItem<String>(
+                        child: Text(value),
+                        value: value,
+                      );
+                    }).toList(),
+                    value: currentKey,
+                  ),
+                  DropdownButton<String>(
+                    icon: Icon(Icons.access_time),
+                    onChanged: (String newValue){
+                      setState(() {
+                        currentDTSelector = newValue;
+                        changeList(keys.indexOf(currentKey));
+                      });
+                    },
+                    items: DT_SELECTORS.map<DropdownMenuItem<String>>((value) {
+                      return DropdownMenuItem<String>(
+                        child: Text(value),
+                        value: value,
+                      );
+                    }).toList(),
+                    value: currentDTSelector,
+                  ),
+                ],
               ),
               Expanded(
                 child: ListView.builder(
