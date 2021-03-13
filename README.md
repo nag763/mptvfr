@@ -1,16 +1,41 @@
-# monprogrammetv
+<a href="https://github.com/nag763/monprogrammetv/blob/main/LICENSE.md" alt="License"><img src="https://img.shields.io/bower/l/bootstrap"></a>
+<a href="https://github.com/nag763/monprogrammetv/releases/latest" alt="GitHub release"><img src="https://img.shields.io/github/v/release/nag763/monprogrammetv" ></a>
+<a href="" alt="issues"><img src="https://img.shields.io/github/issues/nag763/monprogrammetv"></a>
+
+<p align="center"><img src="https://github.com/nag763/monprogrammetv/blob/main/logo.png"></img></p>
+
+<h2 align="center">MPTVFR</h2>
+<h4 align="center">Une application simple pour consulter le programme télé du jour en France.</h4>
 
 Application pour consulter le programme tv du jour
 
-## Getting Started
+## Obtenir l'application
 
-This project is a starting point for a Flutter application.
+L'APK peut être téléchargé directement sur ce lien : [ici](https://github.com/nag763/monprogrammetv/releases/latest).
 
-A few resources to get you started if this is your first Flutter project:
+## A propos
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+- Mainteneur : LABEYE Loïc <loic.labeye@pm.me>
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Technologies utlisées :
+
+  - Flutter
+
+  - Dart SDK
+
+  - Visual Studio Code
+
+  - Pop_os!
+
+## Architecture projet
+
+- android : code source android
+- lib : fichiers sources
+- test : fichiers tests (non utilisés)
+
+## Feuille de route
+
+- [ ] Réaliser tests unitaires.
+- [ ] Séparer les parties logiques et visuelles du code.
+- [ ] Nettoyer le code.
+- [ ] Gérer les problèmes potentiels liés à la taille d'écran.
