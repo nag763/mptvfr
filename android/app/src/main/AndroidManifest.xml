@@ -1,8 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.monprogrammetv">
+    package="fr.llabeye.mptvfr">
+    <uses-permission android:name="android.permission.INTERNET"/>
    <application
         android:label="MPTVFR"
         android:icon="@mipmap/ic_launcher">
+        
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
