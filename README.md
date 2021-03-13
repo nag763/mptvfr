@@ -7,8 +7,6 @@
 <h2 align="center">MPTVFR</h2>
 <h4 align="center">Une application simple pour consulter le programme télé du jour en France.</h4>
 
-Application pour consulter le programme tv du jour
-
 ## Obtenir l'application
 
 L'APK peut être téléchargé directement sur ce lien : [ici](https://github.com/nag763/monprogrammetv/releases/latest).
