@@ -1,4 +1,4 @@
-<a href="https://github.com/nag763/monprogrammetv/blob/main/LICENSE" alt="License"><img src="https://img.shields.io/bower/l/bootstrap"></a>
+<a href="https://img.shields.io/github/license/nag763/mptvfr" alt="License"><img src="https://img.shields.io/bower/l/bootstrap"></a>
 <a href="https://github.com/nag763/monprogrammetv/releases/latest" alt="GitHub release"><img src="https://img.shields.io/github/v/release/nag763/monprogrammetv" ></a>
 <a href="" alt="issues"><img src="https://img.shields.io/github/issues/nag763/monprogrammetv"></a>
 
