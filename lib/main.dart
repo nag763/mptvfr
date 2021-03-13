@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:webfeed/webfeed.dart';
 import 'dart:convert';
@@ -8,8 +6,10 @@ import 'package:intl/intl.dart';
 import 'programme.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+Future main() async {
+  await DotEnv().load('.env');
   runApp(MyApp());
 }
 
@@ -31,16 +31,11 @@ class MyApp extends StatelessWidget {
     DateTime now = new DateTime.now();
     var formatter = new DateFormat('dd-MM-yyyy');
     String formattedDate = formatter.format(now);
-    feedUrl = Uri.https(
-        "webnext.fr",
-        "templates/webnext_exclusive/views/includes/epg_cache/programme-tv-rss_" +
-            formattedDate +
-            ".xml");
+    feedUrl = Uri.https(DotEnv().env['domain'],
+        DotEnv().env['path'] + formattedDate + DotEnv().env['extension']);
     return MaterialApp(
       title: 'Mon programme tv du ' + formattedDate,
-      theme: ThemeData(
-        primarySwatch: Colors.red,
-      ),
+      theme: ThemeData(brightness: Brightness.dark),
       home: MyHomePage(title: 'Mon programme tv du ' + formattedDate),
     );
   }
@@ -60,48 +55,92 @@ class _MyHomePageState extends State<MyHomePage> {
   List<String> keys = [];
   String currentKey = '';
   int currentItemCount = 0;
-  static const List<String> DT_SELECTORS = ['Matinée', 'Midi', 'Après-Midi', 'Soirée', 'Deuxième partie de soirée', 'Aucun'];
+  static const List<String> DT_SELECTORS = [
+    'Matinée',
+    'Midi',
+    'Après-Midi',
+    'Soirée',
+    'Deuxième partie de soirée',
+    'Aucun'
+  ];
   String currentDTSelector = DT_SELECTORS.last;
 
   void changeList(int keyNumber) {
     currentKey = keys[keyNumber];
     currentItems = classedItems[currentKey];
-    if(currentDTSelector != 'Aucun'){
+    if (currentDTSelector != 'Aucun') {
       currentItems = sortedAfterDT(currentItems);
     }
     currentItemCount = currentItems.length;
   }
 
-  List<Programme> sortedAfterDT(List<Programme> itemList){
+  /**
+   * Sort the programme list after the given date time.
+   */
+  List<Programme> sortedAfterDT(List<Programme> itemList) {
     DateTimeRange dtSelector;
     final formatter = DateFormat('H:m');
-    switch(currentDTSelector){
+    switch (currentDTSelector) {
       case 'Matinée':
-        dtSelector = new DateTimeRange(start: formatter.parse('7:30'), end: formatter.parse('11:30'));
+        dtSelector = new DateTimeRange(
+            start: formatter.parse('7:30'), end: formatter.parse('11:30'));
         break;
       case 'Midi':
-        dtSelector = new DateTimeRange(start: formatter.parse('11:30'), end: formatter.parse('13:30'));
+        dtSelector = new DateTimeRange(
+            start: formatter.parse('11:30'), end: formatter.parse('13:30'));
         break;
       case 'Après-Midi':
-        dtSelector = new DateTimeRange(start: formatter.parse('13:30'), end: formatter.parse('20:30'));
+        dtSelector = new DateTimeRange(
+            start: formatter.parse('13:30'), end: formatter.parse('20:30'));
         break;
       case 'Soirée':
-        dtSelector = new DateTimeRange(start: formatter.parse('20:30'), end: formatter.parse('22:30'));
+        dtSelector = new DateTimeRange(
+            start: formatter.parse('20:30'), end: formatter.parse('22:30'));
         break;
       case 'Deuxième partie de soirée':
-      dtSelector = new DateTimeRange(start: formatter.parse('22:30'), end: formatter.parse('23:59'));
+        dtSelector = new DateTimeRange(
+            start: formatter.parse('22:30'), end: formatter.parse('23:59'));
         break;
       case 'Aucun':
         break;
     }
-    if(currentDTSelector != 'Aucun') {
-      var newItemList = itemList.where(
-              (element) => element.heureDebut.isAfter(dtSelector.start) && element.heureDebut.isBefore(dtSelector.end)
-      ).toList();
+    if (currentDTSelector != 'Aucun') {
+      var newItemList = itemList
+          .where((element) =>
+              element.heureDebut.isAfter(dtSelector.start) &&
+              element.heureDebut.isBefore(dtSelector.end))
+          .toList();
       return newItemList;
     }
   }
 
+  /**
+   * Show author info and contact.
+   */
+  Future<void> showInfo() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('A propos'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(DotEnv().env['app_purpose']),
+                Text(
+                    '\nInformations :\n\nAuteur: LABEYE Loïc\nContact : loic.labeye@pm.me\nLicence : MIT'),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /**
+   * Fetch remote RSS, display an error message if it can't be fetched.
+   */
   Future<void> fetchRSS() async {
     final ProgressDialog pr = ProgressDialog(context,
         isDismissible: false, type: ProgressDialogType.Normal);
@@ -110,8 +149,10 @@ class _MyHomePageState extends State<MyHomePage> {
     );
     await pr.show();
     await pr.show().then((_) {
-      http.get(feedUrl, headers: {'Content-Type': 'charset=utf-8'}).then(
-          (response) {
+      http.get(feedUrl, headers: {
+        'Content-Type': 'charset=utf-8',
+        'Access-Control-Allow-Origin': '*'
+      }).then((response) {
         if (200 <= response.statusCode && response.statusCode < 300) {
           var _rssFeed =
               RssFeed.parse(Utf8Decoder().convert(response.bodyBytes));
@@ -126,7 +167,7 @@ class _MyHomePageState extends State<MyHomePage> {
             msg:
                 "[${response.statusCode}] Nous n'avons pas pu joindre le serveur.",
             toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.CENTER,
+            gravity: ToastGravity.BOTTOM,
           );
           pr.hide();
         }
@@ -134,14 +175,14 @@ class _MyHomePageState extends State<MyHomePage> {
         Fluttertoast.showToast(
           msg: "Une erreur est survenue.",
           toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
+          gravity: ToastGravity.BOTTOM,
         );
         pr.hide();
       });
     });
   }
 
-  Future<void> swipedEvent(String direction) async {
+  void swipedEvent(String direction) async {
     if (direction == 'right') {
       if (currentKey != keys.first) {
         setState(() {
@@ -167,8 +208,12 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
-      ),
+          title: Text(widget.title),
+          leading: IconButton(
+              icon: new Icon(Icons.live_tv),
+              onPressed: () {
+                showInfo();
+              })),
       body: GestureDetector(
         onHorizontalDragUpdate: (details) {
           if (details.delta.dx > SENSIBILITY) {
@@ -184,7 +229,12 @@ class _MyHomePageState extends State<MyHomePage> {
             mainAxisSize: MainAxisSize.max,
             children: <Widget>[
               ListTile(
-                leading: Icon(Icons.web),
+                trailing: IconButton(
+                  icon: new Icon(Icons.refresh),
+                  onPressed: () {
+                    fetchRSS();
+                  },
+                ),
                 title: Text(widget.title),
               ),
               Row(
@@ -193,7 +243,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: [
                   DropdownButton<String>(
                     icon: Icon(Icons.airplay),
-                    onChanged: (String newValue){
+                    onChanged: (String newValue) {
                       setState(() {
                         changeList(keys.indexOf(newValue));
                       });
@@ -208,7 +258,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   DropdownButton<String>(
                     icon: Icon(Icons.access_time),
-                    onChanged: (String newValue){
+                    onChanged: (String newValue) {
                       setState(() {
                         currentDTSelector = newValue;
                         changeList(keys.indexOf(currentKey));

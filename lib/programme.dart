@@ -25,7 +25,8 @@ class Programme {
     return programList;
   }
 
-  static Map<String, List<Programme>> classedListFromRSSFeed(List<RssItem> rssFeed) {
+  static Map<String, List<Programme>> classedListFromRSSFeed(
+      List<RssItem> rssFeed) {
     Map<String, List<Programme>> classedList = new Map();
     List<Programme> programList = fromRssFeed(rssFeed);
     for (int i = 0; i < programList.length; i++) {

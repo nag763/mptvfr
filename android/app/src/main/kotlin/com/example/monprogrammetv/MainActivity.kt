@@ -1,4 +1,4 @@
-package fr.labeye.monprogrammetv
+package com.example.monprogrammetv
 
 import io.flutter.embedding.android.FlutterActivity
 
