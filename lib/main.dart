@@ -7,116 +7,129 @@ import 'programme.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 Future main() async {
   await DotEnv().load('.env');
-  runApp(MyApp());
+  runApp(MPTVFR());
 }
 
-var feedUrl;
-
+/// Sensibility of the sliding
 const SENSIBILITY = 22;
 
-String numberToReadableDTString(int number) {
-  if (9 < number) {
-    return number.toString();
-  } else {
-    return '0$number';
-  }
-}
+/// Directions of slidable
+enum Directions { LEFT, RIGHT }
 
-class MyApp extends StatelessWidget {
+/// Formatter for date
+final DateFormat hourMinuteFormatter = DateFormat('H:m');
+
+class MPTVFR extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    DateTime now = new DateTime.now();
-    var formatter = new DateFormat('dd-MM-yyyy');
-    String formattedDate = formatter.format(now);
-    feedUrl = Uri.https(DotEnv().env['domain'],
-        DotEnv().env['path'] + formattedDate + DotEnv().env['extension']);
     return MaterialApp(
-      title: 'Mon programme tv du ' + formattedDate,
+      title: 'MPTVFR',
       theme: ThemeData(brightness: Brightness.dark),
-      home: MyHomePage(title: 'Mon programme tv du ' + formattedDate),
+      home: HomePage(title: 'MPTVFR'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+class HomePage extends StatefulWidget {
+  HomePage({Key key, this.title}) : super(key: key);
   final String title;
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  Map<String, List<Programme>> classedItems = {};
-  List<Programme> currentItems = [];
-  List<String> keys = [];
-  String currentKey = '';
-  int currentItemCount = 0;
-  static const List<String> DT_SELECTORS = [
-    'Matinée',
-    'Midi',
-    'Après-Midi',
-    'Soirée',
-    'Deuxième partie de soirée',
-    'Aucun'
-  ];
-  String currentDTSelector = DT_SELECTORS.last;
+class _HomePageState extends State<HomePage> {
+  /// Classed items, not displayed.
+  Map<String, List<Programme>> _classedItems;
 
+  /// Current items being displayed.
+  List<Programme> _currentItems;
+
+  /// Keys of the classed items.
+  List<String> _keys;
+
+  /// Current key of the list being displayed?
+  String _currentKey;
+
+  /// Current item count of items being displayed.
+  int _currentItemCount;
+
+  /// Displayed datetime.
+  DateTime _fetchedDT;
+
+  /// The feed url.
+  Uri _feedUrl;
+
+  /// Title of the list.
+  String _title;
+
+  /// The current dt selector.
+  String currentDTSelector = dtSelectors.keys.last;
+
+  /// dtSelectors, map of the available selectors for the list of displayed.
+  static final Map<String, DateTimeRange> dtSelectors = {
+    "Matinée": DateTimeRange(
+        start: hourMinuteFormatter.parse('7:30'),
+        end: hourMinuteFormatter.parse('11:30')),
+    "Midi": DateTimeRange(
+        start: hourMinuteFormatter.parse('11:30'),
+        end: hourMinuteFormatter.parse('13:30')),
+    "Après-Midi": DateTimeRange(
+        start: hourMinuteFormatter.parse('13:30'),
+        end: hourMinuteFormatter.parse('20:30')),
+    "Soirée": DateTimeRange(
+        start: hourMinuteFormatter.parse('20:30'),
+        end: hourMinuteFormatter.parse('22:30')),
+    "Deuxième partie de soirée": DateTimeRange(
+        start: hourMinuteFormatter.parse('22:30'),
+        end: hourMinuteFormatter.parse('23:59')),
+    'Aucun': null
+  };
+
+  _HomePageState() {
+    _fetchedDT = DateTime.now();
+    setFeedUrl(_fetchedDT);
+    _currentItemCount = 0;
+    _keys = [];
+    _currentItems = [];
+    _classedItems = {};
+    _title = '';
+  }
+
+  /// Change the list to the given [keyNumber]
   void changeList(int keyNumber) {
-    currentKey = keys[keyNumber];
-    currentItems = classedItems[currentKey];
+    _currentKey = _keys[keyNumber];
     if (currentDTSelector != 'Aucun') {
-      currentItems = sortedAfterDT(currentItems);
+      _currentItems = _classedItems[_currentKey]
+          .sortBetweenDR(dtSelectors[currentDTSelector]);
+    } else {
+      _currentItems = _classedItems[_currentKey];
     }
-    currentItemCount = currentItems.length;
+    _currentItemCount = _currentItems.length;
   }
 
-  /**
-   * Sort the programme list after the given date time.
-   */
-  List<Programme> sortedAfterDT(List<Programme> itemList) {
-    DateTimeRange dtSelector;
-    final formatter = DateFormat('H:m');
-    switch (currentDTSelector) {
-      case 'Matinée':
-        dtSelector = new DateTimeRange(
-            start: formatter.parse('7:30'), end: formatter.parse('11:30'));
-        break;
-      case 'Midi':
-        dtSelector = new DateTimeRange(
-            start: formatter.parse('11:30'), end: formatter.parse('13:30'));
-        break;
-      case 'Après-Midi':
-        dtSelector = new DateTimeRange(
-            start: formatter.parse('13:30'), end: formatter.parse('20:30'));
-        break;
-      case 'Soirée':
-        dtSelector = new DateTimeRange(
-            start: formatter.parse('20:30'), end: formatter.parse('22:30'));
-        break;
-      case 'Deuxième partie de soirée':
-        dtSelector = new DateTimeRange(
-            start: formatter.parse('22:30'), end: formatter.parse('23:59'));
-        break;
-      case 'Aucun':
-        break;
-    }
-    if (currentDTSelector != 'Aucun') {
-      var newItemList = itemList
-          .where((element) =>
-              element.heureDebut.isAfter(dtSelector.start) &&
-              element.heureDebut.isBefore(dtSelector.end))
-          .toList();
-      return newItemList;
-    }
+  /// Set the feed url for the given DateTime [dt]
+  setFeedUrl(DateTime dt) {
+    DateFormat formatter = new DateFormat('dd-MM-yyyy');
+    String formattedDate = formatter.format(dt);
+    _feedUrl = Uri.https(DotEnv().env['domain'],
+        DotEnv().env['path'] + formattedDate + DotEnv().env['extension']);
   }
 
-  /**
-   * Show author info and contact.
-   */
+  /// Set the current title to the given DateTime [dt]
+  setTitle(DateTime dt) {
+    initializeDateFormatting('fr').then((_) {
+      final DateFormat formatter = new DateFormat('EEEE d MMMM', 'fr');
+      final String dateString = formatter.format(dt);
+      _title = 'Programme télé du ${dateString}';
+    });
+  }
+
+  /// Show the info about the app
   Future<void> showInfo() async {
     return showDialog<void>(
       context: context,
@@ -138,9 +151,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  /**
-   * Fetch remote RSS, display an error message if it can't be fetched.
-   */
+  /// Fetch the remote rss
   Future<void> fetchRSS() async {
     final ProgressDialog pr = ProgressDialog(context,
         isDismissible: false, type: ProgressDialogType.Normal);
@@ -149,17 +160,26 @@ class _MyHomePageState extends State<MyHomePage> {
     );
     await pr.show();
     await pr.show().then((_) {
-      http.get(feedUrl, headers: {
+      final DateTime now = DateTime.now();
+      if (_fetchedDT.month != now.month &&
+          _fetchedDT.day != now.day &&
+          _fetchedDT.year != now.year) {
+        _fetchedDT = now;
+        setFeedUrl(_fetchedDT);
+      }
+      http.get(_feedUrl, headers: {
         'Content-Type': 'charset=utf-8',
         'Access-Control-Allow-Origin': '*'
       }).then((response) {
         if (200 <= response.statusCode && response.statusCode < 300) {
           var _rssFeed =
               RssFeed.parse(Utf8Decoder().convert(response.bodyBytes));
-          classedItems = Programme.classedListFromRSSFeed(_rssFeed.items);
-          keys = classedItems.keys.toList();
+          _classedItems = MappedTVList.setFromRssFeed(_rssFeed.items);
+          print(_classedItems);
+          _keys = _classedItems.keys.toList();
           setState(() {
             changeList(0);
+            setTitle(_fetchedDT);
           });
           pr.hide();
         } else {
@@ -182,17 +202,18 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void swipedEvent(String direction) async {
-    if (direction == 'right') {
-      if (currentKey != keys.first) {
+  /// Change the display according to the given swiped [direction]
+  void swipedEvent(Directions direction) async {
+    if (direction == Directions.LEFT) {
+      if (_currentKey != _keys.first) {
         setState(() {
-          changeList(keys.indexOf(currentKey) - 1);
+          changeList(_keys.indexOf(_currentKey) - 1);
         });
       }
-    } else if (direction == 'left') {
-      if (currentKey != keys.last) {
+    } else if (direction == Directions.RIGHT) {
+      if (_currentKey != _keys.last) {
         setState(() {
-          changeList(keys.indexOf(currentKey) + 1);
+          changeList(_keys.indexOf(_currentKey) + 1);
         });
       }
     }
@@ -217,13 +238,13 @@ class _MyHomePageState extends State<MyHomePage> {
       body: GestureDetector(
         onHorizontalDragUpdate: (details) {
           if (details.delta.dx > SENSIBILITY) {
-            swipedEvent('right');
+            swipedEvent(Directions.LEFT);
           } else if (details.delta.dx < -SENSIBILITY) {
-            swipedEvent('left');
+            swipedEvent(Directions.RIGHT);
           }
         },
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(10, 0, 0, 10),
+          padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.max,
@@ -235,7 +256,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     fetchRSS();
                   },
                 ),
-                title: Text(widget.title),
+                title: Text(_title),
               ),
               Row(
                 mainAxisSize: MainAxisSize.max,
@@ -245,26 +266,27 @@ class _MyHomePageState extends State<MyHomePage> {
                     icon: Icon(Icons.airplay),
                     onChanged: (String newValue) {
                       setState(() {
-                        changeList(keys.indexOf(newValue));
+                        changeList(_keys.indexOf(newValue));
                       });
                     },
-                    items: keys.map<DropdownMenuItem<String>>((value) {
+                    items: _keys.map<DropdownMenuItem<String>>((value) {
                       return DropdownMenuItem<String>(
                         child: Text(value),
                         value: value,
                       );
                     }).toList(),
-                    value: currentKey,
+                    value: _currentKey,
                   ),
                   DropdownButton<String>(
                     icon: Icon(Icons.access_time),
                     onChanged: (String newValue) {
                       setState(() {
                         currentDTSelector = newValue;
-                        changeList(keys.indexOf(currentKey));
+                        changeList(_keys.indexOf(_currentKey));
                       });
                     },
-                    items: DT_SELECTORS.map<DropdownMenuItem<String>>((value) {
+                    items:
+                        dtSelectors.keys.map<DropdownMenuItem<String>>((value) {
                       return DropdownMenuItem<String>(
                         child: Text(value),
                         value: value,
@@ -278,20 +300,20 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: ListView.builder(
                   shrinkWrap: true,
                   scrollDirection: Axis.vertical,
-                  itemCount: currentItemCount,
+                  itemCount: _currentItemCount,
                   itemBuilder: (context, index) {
                     return Card(
                       child: Column(
                         children: <Widget>[
                           ListTile(
-                            leading: Text(currentItems[index].getChaine()),
-                            title: Text(currentItems[index].getTitle()),
+                            leading: Text(_currentItems[index].getChaine()),
+                            title: Text(_currentItems[index].getTitle()),
                             subtitle: Text(
-                                'Début à ${numberToReadableDTString(currentItems[index].getHeureDebut().hour)}h${numberToReadableDTString(currentItems[index].getHeureDebut().minute)}'),
+                                _currentItems[index].getHeureDebutAsString()),
                             onLongPress: () {
                               Scaffold.of(context).showSnackBar(SnackBar(
                                 content:
-                                    Text(currentItems[index].getDescription()),
+                                    Text(_currentItems[index].getDescription()),
                               ));
                             },
                           )
