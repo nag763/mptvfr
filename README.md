@@ -37,7 +37,16 @@ L'APK peut être téléchargé directement sur ce lien : [ici](https://github.co
 
 ## Feuille de route
 
+### Expérience Utilisateur
+
+- [ ] Ajouter un mode programme/ chaîne par colonne.
+- [ ] Ajouter une alternative lorsqu'aucun programme n'est récupéré à cause d'une erreur, affichant le signe que les programmes n'ont pas pu être récupérés à l'emplacement usuel de la liste.
+
+### Technique
+
+- [X] Privilégier les classes Dart plutôt que les Map.
 - [ ] Réaliser tests unitaires.
 - [ ] Séparer les parties logiques et visuelles du code.
 - [ ] Nettoyer le code.
 - [ ] Gérer les problèmes potentiels liés à la taille d'écran.
+- [ ] Trouver un meilleur fournisseur de programme.
