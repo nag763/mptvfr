@@ -49,3 +49,4 @@ L'APK peut être téléchargé directement sur ce lien : [ici](https://github.co
 - [ ] Séparer les parties logiques et visuelles du code.
 - [ ] Nettoyer le code.
 - [ ] Gérer les problèmes potentiels liés à la taille d'écran.
+- [ ] Trouver un meilleur fournisseur de programme.
