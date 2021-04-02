@@ -262,21 +262,24 @@ class _HomePageState extends State<HomePage> {
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  DropdownButton<String>(
-                    icon: Icon(Icons.airplay),
-                    onChanged: (String newValue) {
-                      setState(() {
-                        changeList(_keys.indexOf(newValue));
-                      });
-                    },
-                    items: _keys.map<DropdownMenuItem<String>>((value) {
-                      return DropdownMenuItem<String>(
-                        child: Text(value),
-                        value: value,
-                      );
-                    }).toList(),
-                    value: _currentKey,
-                  ),
+                  Expanded(
+                      child: Stack(children: [
+                    DropdownButton<String>(
+                      icon: Icon(Icons.airplay),
+                      onChanged: (String newValue) {
+                        setState(() {
+                          changeList(_keys.indexOf(newValue));
+                        });
+                      },
+                      items: _keys.map<DropdownMenuItem<String>>((value) {
+                        return DropdownMenuItem<String>(
+                          child: Text(value, style: TextStyle(fontSize: 12)),
+                          value: value,
+                        );
+                      }).toList(),
+                      value: _currentKey,
+                    ),
+                  ])),
                   DropdownButton<String>(
                     icon: Icon(Icons.access_time),
                     onChanged: (String newValue) {
@@ -288,7 +291,7 @@ class _HomePageState extends State<HomePage> {
                     items:
                         dtSelectors.keys.map<DropdownMenuItem<String>>((value) {
                       return DropdownMenuItem<String>(
-                        child: Text(value),
+                        child: Text(value, style: TextStyle(fontSize: 12)),
                         value: value,
                       );
                     }).toList(),
