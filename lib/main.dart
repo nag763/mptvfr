@@ -14,9 +14,6 @@ Future main() async {
   runApp(MPTVFR());
 }
 
-/// Sensibility of the sliding
-const SENSIBILITY = 22;
-
 /// Directions of slidable
 enum Directions { LEFT, RIGHT }
 
@@ -69,6 +66,9 @@ class _HomePageState extends State<HomePage> {
 
   /// The current dt selector.
   String currentDTSelector = dtSelectors.keys.last;
+
+  /// Detect if the element should be swipeable or not.
+  bool isSwipeable;
 
   /// dtSelectors, map of the available selectors for the list of displayed.
   static final Map<String, DateTimeRange> dtSelectors = {
@@ -222,6 +222,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     fetchRSS();
+    this.isSwipeable = true;
     super.initState();
   }
 
@@ -237,11 +238,16 @@ class _HomePageState extends State<HomePage> {
               })),
       body: GestureDetector(
         onHorizontalDragUpdate: (details) {
-          if (details.delta.dx > SENSIBILITY) {
+          if (details.delta.dx > 0 && this.isSwipeable) {
             swipedEvent(Directions.LEFT);
-          } else if (details.delta.dx < -SENSIBILITY) {
+            this.isSwipeable = false;
+          } else if (details.delta.dx < 0 && this.isSwipeable) {
             swipedEvent(Directions.RIGHT);
+            this.isSwipeable = false;
           }
+        },
+        onHorizontalDragEnd: (details) {
+          this.isSwipeable = true;
         },
         child: Padding(
           padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
