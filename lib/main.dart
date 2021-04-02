@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:monprogrammetv/chaine.dart';
 import 'package:webfeed/webfeed.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -40,8 +41,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  /// Classed items, not displayed.
-  Map<String, List<Programme>> _classedItems;
+  List<Chaine> _chaineList;
 
   /// Current items being displayed.
   List<Programme> _currentItems;
@@ -65,13 +65,19 @@ class _HomePageState extends State<HomePage> {
   String _title;
 
   /// The current dt selector.
-  String currentDTSelector = dtSelectors.keys.last;
+  String currentDTSelector = dtSelectors.keys.first;
 
   /// Detect if the element should be swipeable or not.
   bool isSwipeable;
 
   /// dtSelectors, map of the available selectors for the list of displayed.
   static final Map<String, DateTimeRange> dtSelectors = {
+    "Maintenant": DateTimeRange(
+      start: hourMinuteFormatter
+          .parse((DateTime.now().hour - 2).toString() + ":00"),
+      end: hourMinuteFormatter
+          .parse((DateTime.now().hour + 2).toString() + ":00"),
+    ),
     "Matinée": DateTimeRange(
         start: hourMinuteFormatter.parse('7:30'),
         end: hourMinuteFormatter.parse('11:30')),
@@ -96,18 +102,19 @@ class _HomePageState extends State<HomePage> {
     _currentItemCount = 0;
     _keys = [];
     _currentItems = [];
-    _classedItems = {};
     _title = '';
+    _chaineList = [];
   }
 
   /// Change the list to the given [keyNumber]
   void changeList(int keyNumber) {
     _currentKey = _keys[keyNumber];
     if (currentDTSelector != 'Aucun') {
-      _currentItems = _classedItems[_currentKey]
+      _currentItems = _chaineList[keyNumber]
+          .programmes
           .sortBetweenDR(dtSelectors[currentDTSelector]);
     } else {
-      _currentItems = _classedItems[_currentKey];
+      _currentItems = _chaineList[keyNumber].programmes;
     }
     _currentItemCount = _currentItems.length;
   }
@@ -174,9 +181,9 @@ class _HomePageState extends State<HomePage> {
         if (200 <= response.statusCode && response.statusCode < 300) {
           var _rssFeed =
               RssFeed.parse(Utf8Decoder().convert(response.bodyBytes));
-          _classedItems = MappedTVList.setFromRssFeed(_rssFeed.items);
-          print(_classedItems);
-          _keys = _classedItems.keys.toList();
+          _chaineList = ChaineTVList.setFromRssFeed(_rssFeed.items);
+
+          _keys = _chaineList.map<String>((e) => e.name).toList();
           setState(() {
             changeList(0);
             setTitle(_fetchedDT);
