@@ -239,7 +239,9 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
           title: Text(widget.title),
           leading: IconButton(
-              icon: new Icon(Icons.live_tv),
+              icon: new Image(
+                image: AssetImage('logo.png'),
+              ),
               onPressed: () {
                 showInfo();
               })),
