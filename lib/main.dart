@@ -324,7 +324,11 @@ class _HomePageState extends State<HomePage> {
                       child: Column(
                         children: <Widget>[
                           ListTile(
-                            leading: Text(_currentItems[index].getChaine()),
+                            leading: new Image.asset(
+                              _currentItems[index].getLogoPath(),
+                              height: 40,
+                              width: 40,
+                            ),
                             title: Text(_currentItems[index].getTitle()),
                             subtitle: Text(
                                 _currentItems[index].getHeureDebutAsString()),

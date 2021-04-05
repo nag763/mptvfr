@@ -5,6 +5,34 @@ import 'package:intl/intl.dart';
 /// Class dt formatter
 final DateFormat _hourMinuteFormatter = DateFormat('H:m');
 
+const String CHAINE_PKG_NAME = 'logos/channels/';
+const Map<String, String> CHAINE_LOGO = {
+  'TF1': 'tf1.png',
+  'France 2': 'fr2.png',
+  'France 3': 'fr3.png',
+  'France 4': 'fr4.png',
+  'France 5': 'fr5.png',
+  'Canal+': 'canal+.png',
+  '6ter': '6ter.png',
+  'Gulli': 'gulli.png',
+  'W9': 'w9.png',
+  'M6': 'm6.png',
+  'TMC': 'tmc.png',
+  'TFX': 'tfx.png',
+  'C8': 'c8.png',
+  'Arte': 'arte.png',
+  'BFMTV': 'bfm.png',
+  'CNews': 'cnews.png',
+  'Public Sénat - LCP AN': 'ps.png',
+  'NRJ 12': 'nrj12.png',
+  'CStar': 'cstar.png',
+  'TF1 Séries Films': 'tf1sf.png',
+  'RMC Story': 'rmcs.png',
+  'RMC Découverte': 'rmcd.png',
+  'Chérie 25': 'c25.png',
+  'L\'Équipe': 'leq21.png'
+};
+
 /// Return a readable time given a certain [number]
 String _numberToReadableDTString(int number) {
   if (9 < number) {
@@ -30,6 +58,8 @@ class Programme {
 
   /// Category of the programme
   String _category;
+
+  String _logoPath;
 
   String getTitle() {
     return this._title;
@@ -72,6 +102,14 @@ class Programme {
     return this._category;
   }
 
+  String getLogoPath() {
+    return this._logoPath;
+  }
+
+  void setLogoPath(String logoPath) {
+    this._logoPath = logoPath;
+  }
+
   void setCategory(String category) {
     this._category = category;
   }
@@ -95,6 +133,11 @@ extension ProgrammeTVList on List<Programme> {
       p.setDescription(item.description);
       p.setHeureDebut(
           _hourMinuteFormatter.parse(item.title.split('|')[1].trim()));
+      if (CHAINE_LOGO.containsKey(p.getChaine())) {
+        p.setLogoPath(CHAINE_PKG_NAME + CHAINE_LOGO[p.getChaine()]);
+      } else {
+        p.setLogoPath('logo.png');
+      }
       list.add(p);
     }
     return list;
