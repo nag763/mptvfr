@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:monprogrammetv/chaine.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:webfeed/webfeed.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -148,8 +149,9 @@ class _HomePageState extends State<HomePage> {
             child: ListBody(
               children: <Widget>[
                 Text(DotEnv().env['app_purpose']),
-                Text(
-                    '\nInformations :\n\nAuteur: LABEYE Loïc\nContact : loic.labeye@pm.me\nLicence : MIT'),
+                Text('\nInformations :\n\nAuteur: LABEYE Loïc\nContact : ' +
+                    DotEnv().env['mailto'] +
+                    '\nLicence : MIT'),
               ],
             ),
           ),
@@ -271,7 +273,9 @@ class _HomePageState extends State<HomePage> {
                     fetchRSS();
                   },
                 ),
-                title: Text(_title),
+                title: Text(_title.isEmpty
+                    ? 'Aucune information n\'a pu être chargée'
+                    : _title),
               ),
               Row(
                 mainAxisSize: MainAxisSize.max,
@@ -315,35 +319,76 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               Expanded(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  scrollDirection: Axis.vertical,
-                  itemCount: _currentItemCount,
-                  itemBuilder: (context, index) {
-                    return Card(
-                      child: Column(
-                        children: <Widget>[
-                          ListTile(
-                            leading: new Image.asset(
-                              _currentItems[index].getLogoPath(),
-                              height: 40,
-                              width: 40,
+                child: _chaineList.isEmpty
+                    ? RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text:
+                                  "Une erreur est survenue. Vérifiez votre connexion internet. Si vous essayez entre minuit et deux heures du matin, il se peut que le programme TV ne soit pas encore disponible.\n\n",
                             ),
-                            title: Text(_currentItems[index].getTitle()),
-                            subtitle: Text(
-                                _currentItems[index].getHeureDebutAsString()),
-                            onLongPress: () {
-                              Scaffold.of(context).showSnackBar(SnackBar(
-                                content:
-                                    Text(_currentItems[index].getDescription()),
-                              ));
-                            },
-                          )
-                        ],
+                            TextSpan(
+                              text:
+                                  "Autrement, vous êtes invités à remonter le bogue en envoyant un courriel à l'adresse suivante : loic.labeye@barentin.dev",
+                            ),
+                            WidgetSpan(
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.email,
+                                  ),
+                                  onPressed: () {
+                                    launch(DotEnv().env['mailto']);
+                                  },
+                                  iconSize: 14.0,
+                                ),
+                                alignment: PlaceholderAlignment.middle),
+                            TextSpan(
+                              text:
+                                  "\n\nVous pouvez également directement reporter le bogue sur GitHub si vous êtes familier avec l'interface",
+                            ),
+                            WidgetSpan(
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.link,
+                                  ),
+                                  onPressed: () {
+                                    launch(DotEnv().env['github']);
+                                  },
+                                  iconSize: 14.0,
+                                ),
+                                alignment: PlaceholderAlignment.middle),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        scrollDirection: Axis.vertical,
+                        itemCount: _currentItemCount,
+                        itemBuilder: (context, index) {
+                          return Card(
+                            child: Column(
+                              children: <Widget>[
+                                ListTile(
+                                  leading: new Image.asset(
+                                    _currentItems[index].getLogoPath(),
+                                    height: 40,
+                                    width: 40,
+                                  ),
+                                  title: Text(_currentItems[index].getTitle()),
+                                  subtitle: Text(_currentItems[index]
+                                      .getHeureDebutAsString()),
+                                  onLongPress: () {
+                                    Scaffold.of(context).showSnackBar(SnackBar(
+                                      content: Text(_currentItems[index]
+                                          .getDescription()),
+                                    ));
+                                  },
+                                )
+                              ],
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               )
             ],
           ),
