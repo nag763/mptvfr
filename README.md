@@ -9,9 +9,9 @@
 
 ![demo](https://github.com/nag763/monprogrammetv/blob/main/demo.gif)
 
-![screen1](https://github.com/nag763/monprogrammetv/blob/main/screen1.jpg)
-![screen2](https://github.com/nag763/monprogrammetv/blob/main/screen2.jpg)
-![screen3](https://github.com/nag763/monprogrammetv/blob/main/screen3.jpg)
+<img src="https://github.com/nag763/monprogrammetv/blob/main/screen1.jpg" width=200>
+<img src="https://github.com/nag763/monprogrammetv/blob/main/screen2.jpg" width=200>
+<img src="https://github.com/nag763/monprogrammetv/blob/main/screen3.jpg" width=200>
 
 Application pour consulter le programme tv du jour
 
