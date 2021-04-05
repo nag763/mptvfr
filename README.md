@@ -7,11 +7,11 @@
 <h2 align="center">MPTVFR</h2>
 <h4 align="center">Une application simple pour consulter le programme télé du jour en France.</h4>
 
-![demo](https://github.com/nag763/monprogrammetv/blob/master/demo.gif)
+![demo](https://github.com/nag763/monprogrammetv/blob/main/demo.gif)
 
-<img src="https://github.com/nag763/monprogrammetv/blob/main/screen1.jpg" alt="drawing" width="200"/>
-<img src="https://github.com/nag763/monprogrammetv/blob/main/screen2.jpg" alt="drawing" width="200"/>
-<img src="https://github.com/nag763/monprogrammetv/blob/main/screen3.jpg" alt="drawing" width="200"/>
+![screen1](https://github.com/nag763/monprogrammetv/blob/main/screen1.jpg)
+![screen2](https://github.com/nag763/monprogrammetv/blob/main/screen2.jpg)
+![screen3](https://github.com/nag763/monprogrammetv/blob/main/screen3.jpg)
 
 Application pour consulter le programme tv du jour
 
