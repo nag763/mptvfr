@@ -242,7 +242,7 @@ class _HomePageState extends State<HomePage> {
           title: Text(widget.title),
           leading: IconButton(
               icon: new Image(
-                image: AssetImage('logo.png'),
+                image: AssetImage('logos/logo.png'),
               ),
               onPressed: () {
                 showInfo();
