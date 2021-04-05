@@ -2,7 +2,7 @@
 <a href="https://github.com/nag763/monprogrammetv/releases/latest" alt="GitHub release"><img src="https://img.shields.io/github/v/release/nag763/monprogrammetv" ></a>
 <a href="" alt="issues"><img src="https://img.shields.io/github/issues/nag763/monprogrammetv"></a>
 
-<p align="center"><img src="https://github.com/nag763/monprogrammetv/blob/main/logo.png"></img></p>
+<p align="center"><img src="https://github.com/nag763/monprogrammetv/blob/main/logos/logo.png"></img></p>
 
 <h2 align="center">MPTVFR</h2>
 <h4 align="center">Une application simple pour consulter le programme télé du jour en France.</h4>
