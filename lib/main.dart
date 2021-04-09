@@ -73,6 +73,8 @@ class _HomePageState extends State<HomePage> {
   /// Detect if the element should be swipeable or not.
   bool isSwipeable;
 
+  bool hasBeenFetched;
+
   /// dtSelectors, map of the available selectors for the list of displayed.
   static final Map<String, DateTimeRange> dtSelectors = {
     "Maintenant": DateTimeRange(
@@ -251,12 +253,14 @@ class _HomePageState extends State<HomePage> {
               })),
       body: GestureDetector(
         onHorizontalDragUpdate: (details) {
-          if (details.delta.dx > 0 && this.isSwipeable) {
-            swipedEvent(Directions.LEFT);
-            this.isSwipeable = false;
-          } else if (details.delta.dx < 0 && this.isSwipeable) {
-            swipedEvent(Directions.RIGHT);
-            this.isSwipeable = false;
+          if (_chaineList.isNotEmpty) {
+            if (details.delta.dx > 0 && this.isSwipeable) {
+              swipedEvent(Directions.LEFT);
+              this.isSwipeable = false;
+            } else if (details.delta.dx < 0 && this.isSwipeable) {
+              swipedEvent(Directions.RIGHT);
+              this.isSwipeable = false;
+            }
           }
         },
         onHorizontalDragEnd: (details) {
