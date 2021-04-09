@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:monprogrammetv/chaine.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -75,9 +77,9 @@ class _HomePageState extends State<HomePage> {
   static final Map<String, DateTimeRange> dtSelectors = {
     "Maintenant": DateTimeRange(
       start: hourMinuteFormatter
-          .parse((DateTime.now().hour - 2).toString() + ":00"),
+          .parse((max(DateTime.now().hour - 2, 0)).toString() + ":00"),
       end: hourMinuteFormatter
-          .parse((DateTime.now().hour + 2).toString() + ":00"),
+          .parse((min(DateTime.now().hour + 2, 24)).toString() + ":00"),
     ),
     "Matinée": DateTimeRange(
         start: hourMinuteFormatter.parse('7:30'),
@@ -320,46 +322,49 @@ class _HomePageState extends State<HomePage> {
               ),
               Expanded(
                 child: _chaineList.isEmpty
-                    ? RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text:
-                                  "Une erreur est survenue. Vérifiez votre connexion internet. Si vous essayez entre minuit et deux heures du matin, il se peut que le programme TV ne soit pas encore disponible.\n\n",
-                            ),
-                            TextSpan(
-                              text:
-                                  "Autrement, vous êtes invités à remonter le bogue en envoyant un courriel à l'adresse suivante : loic.labeye@barentin.dev",
-                            ),
-                            WidgetSpan(
-                                child: IconButton(
-                                  icon: Icon(
-                                    Icons.email,
-                                  ),
-                                  onPressed: () {
-                                    launch(DotEnv().env['mailto']);
-                                  },
-                                  iconSize: 14.0,
+                    ? DateTime.now().hour < 2
+                        ? Text(
+                            "Le programme n'est pas disponnible entre minuit et deux heures du matin, veuillez réessayer au delà de ces heures.")
+                        : RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text:
+                                      "Une erreur est survenue. Vérifiez votre connexion internet. Si vous essayez entre minuit et deux heures du matin, il se peut que le programme TV ne soit pas encore disponible.\n\n",
                                 ),
-                                alignment: PlaceholderAlignment.middle),
-                            TextSpan(
-                              text:
-                                  "\n\nVous pouvez également directement reporter le bogue sur GitHub si vous êtes familier avec l'interface",
-                            ),
-                            WidgetSpan(
-                                child: IconButton(
-                                  icon: Icon(
-                                    Icons.link,
-                                  ),
-                                  onPressed: () {
-                                    launch(DotEnv().env['github']);
-                                  },
-                                  iconSize: 14.0,
+                                TextSpan(
+                                  text:
+                                      "Autrement, vous êtes invités à remonter le bogue en envoyant un courriel à l'adresse suivante : loic.labeye@barentin.dev",
                                 ),
-                                alignment: PlaceholderAlignment.middle),
-                          ],
-                        ),
-                      )
+                                WidgetSpan(
+                                    child: IconButton(
+                                      icon: Icon(
+                                        Icons.email,
+                                      ),
+                                      onPressed: () {
+                                        launch(DotEnv().env['mailto']);
+                                      },
+                                      iconSize: 14.0,
+                                    ),
+                                    alignment: PlaceholderAlignment.middle),
+                                TextSpan(
+                                  text:
+                                      "\n\nVous pouvez également directement reporter le bogue sur GitHub si vous êtes familier avec l'interface",
+                                ),
+                                WidgetSpan(
+                                    child: IconButton(
+                                      icon: Icon(
+                                        Icons.link,
+                                      ),
+                                      onPressed: () {
+                                        launch(DotEnv().env['github']);
+                                      },
+                                      iconSize: 14.0,
+                                    ),
+                                    alignment: PlaceholderAlignment.middle),
+                              ],
+                            ),
+                          )
                     : ListView.builder(
                         shrinkWrap: true,
                         scrollDirection: Axis.vertical,
