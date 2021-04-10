@@ -77,12 +77,7 @@ class _HomePageState extends State<HomePage> {
 
   /// dtSelectors, map of the available selectors for the list of displayed.
   static final Map<String, DateTimeRange> dtSelectors = {
-    "Maintenant": DateTimeRange(
-      start: hourMinuteFormatter
-          .parse((max(DateTime.now().hour - 2, 0)).toString() + ":00"),
-      end: hourMinuteFormatter
-          .parse((min(DateTime.now().hour + 2, 24)).toString() + ":00"),
-    ),
+    "Maintenant": null,
     "Matinée": DateTimeRange(
         start: hourMinuteFormatter.parse('7:30'),
         end: hourMinuteFormatter.parse('11:30')),
@@ -114,10 +109,17 @@ class _HomePageState extends State<HomePage> {
   /// Change the list to the given [keyNumber]
   void changeList(int keyNumber) {
     _currentKey = _keys[keyNumber];
-    if (currentDTSelector != 'Aucun') {
-      _currentItems = _chaineList[keyNumber]
-          .programmes
-          .sortBetweenDR(dtSelectors[currentDTSelector]);
+    if (currentDTSelector.compareTo('Aucun') != 0) {
+      if (currentDTSelector.compareTo('Maintenant') != 0) {
+        _currentItems = _chaineList[keyNumber]
+            .programmes
+            .sortBetweenDR(dtSelectors[currentDTSelector]);
+      } else {
+        _currentItems = _chaineList[keyNumber]
+            .programmes
+            .where((p) => p.state.index == ProgrammeState.LIVE.index)
+            .toList();
+      }
     } else {
       _currentItems = _chaineList[keyNumber].programmes;
     }
@@ -383,9 +385,37 @@ class _HomePageState extends State<HomePage> {
                                     height: 40,
                                     width: 40,
                                   ),
+                                  enabled: _currentItems[index].state !=
+                                      ProgrammeState.FINISHED,
                                   title: Text(_currentItems[index].getTitle()),
-                                  subtitle: Text(_currentItems[index]
-                                      .getHeureDebutAsString()),
+                                  subtitle: _currentItems[index].state !=
+                                          ProgrammeState.LIVE
+                                      ? (Text(_currentItems[index].state !=
+                                              ProgrammeState.FINISHED
+                                          ? (_currentItems[index]
+                                              .getHeureDebutAsString())
+                                          : _currentItems[index]
+                                              .getHeureFinAsString()))
+                                      : Column(
+                                          children: <Widget>[
+                                            LinearProgressIndicator(
+                                              value: _currentItems[index]
+                                                  .percentOfProgram,
+                                              valueColor:
+                                                  new AlwaysStoppedAnimation<
+                                                          Color>(
+                                                      Colors.indigoAccent),
+                                            ),
+                                            Align(
+                                              alignment: Alignment.bottomLeft,
+                                              child: Text(
+                                                _currentItems[index]
+                                                    .contextTime,
+                                                style: TextStyle(fontSize: 10),
+                                              ),
+                                            )
+                                          ],
+                                        ),
                                   onLongPress: () {
                                     Scaffold.of(context).showSnackBar(SnackBar(
                                       content: Text(_currentItems[index]

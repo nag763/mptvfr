@@ -42,39 +42,77 @@ String _numberToReadableDTString(int number) {
   }
 }
 
+/// Return a readable time given a certain [number]
+String _durationAsReadable(Duration drt) {
+  String duration;
+  if (0 < drt.inHours) {
+    duration = '${drt.inHours} heure' +
+        (1 < drt.inHours ? 's' : '') +
+        ' et ${drt.inMinutes % 60} minute' +
+        (1 < drt.inMinutes % 60 ? 's' : '');
+  } else {
+    duration = '${drt.inMinutes} minute' + (1 < drt.inMinutes ? 's' : '');
+  }
+  return duration;
+}
+
+enum ProgrammeState {
+  FINISHED,
+  LIVE,
+  NOT_STARTED,
+}
+
 /// Tv Programme
 class Programme {
   /// Title of the programme
-  String _title;
+  String title;
 
   /// Description of the programme
-  String _description;
+  String description;
 
   /// Heure where it starts
   DateTime heureDebut;
 
+  /// Heure where it starts
+  DateTime heureFin;
+
   /// Chaine casting it
-  String _chaine;
+  String chaine;
 
   /// Category of the programme
-  String _category;
+  String category;
 
-  String _logoPath;
+  String logoPath;
+
+  ProgrammeState state;
+
+  double percentOfProgram;
+
+  String contextTime;
+
+  Programme(
+      {this.title,
+      this.category,
+      this.chaine,
+      this.heureDebut,
+      this.heureFin,
+      this.logoPath,
+      this.description});
 
   String getTitle() {
-    return this._title;
+    return this.title;
   }
 
   void setTitle(String title) {
-    this._title = title;
+    this.title = title;
   }
 
   String getDescription() {
-    return this._description;
+    return this.description;
   }
 
   void setDescription(String description) {
-    this._description = description;
+    this.description = description;
   }
 
   DateTime getHeureDebut() {
@@ -90,33 +128,46 @@ class Programme {
     this.heureDebut = heureDebut;
   }
 
+  DateTime getHeureFin() {
+    return this.heureFin;
+  }
+
+  /// Get the heure as a readable string
+  String getHeureFinAsString() {
+    return 'Fini depuis ${_numberToReadableDTString(heureFin.hour)}h${_numberToReadableDTString(heureFin.minute)}';
+  }
+
+  void setHeureFin(DateTime heureFin) {
+    this.heureFin = heureFin;
+  }
+
   String getChaine() {
-    return this._chaine;
+    return this.chaine;
   }
 
   void setChaine(String chaine) {
-    this._chaine = chaine;
+    this.chaine = chaine;
   }
 
   String getCategory() {
-    return this._category;
+    return this.category;
   }
 
   String getLogoPath() {
-    return this._logoPath;
+    return this.logoPath;
   }
 
   void setLogoPath(String logoPath) {
-    this._logoPath = logoPath;
+    this.logoPath = logoPath;
   }
 
   void setCategory(String category) {
-    this._category = category;
+    this.category = category;
   }
 
   @override
   String toString() {
-    return '[$_chaine] $_title ($getHeureDebutAsString())';
+    return '[$chaine] $title ($heureDebut)';
   }
 }
 
@@ -124,19 +175,55 @@ extension ProgrammeTVList on List<Programme> {
   /// Get a list of programme tv from a given [rssFeed]
   static fromRssFeed(List<RssItem> rssFeed) {
     List<Programme> list = [];
+    DateTime now = _hourMinuteFormatter
+        .parse('${DateTime.now().hour}:${DateTime.now().minute}');
     for (int i = 0; i < rssFeed.length; i++) {
-      Programme p = new Programme();
       RssItem item = rssFeed[i];
-      p.setTitle(item.title.split('|').last.trim());
-      p.setCategory(item.categories.first.value);
-      p.setChaine(item.title.split('|').first.trim());
-      p.setDescription(item.description);
-      p.setHeureDebut(
-          _hourMinuteFormatter.parse(item.title.split('|')[1].trim()));
-      if (CHAINE_LOGO.containsKey(p.getChaine())) {
-        p.setLogoPath(CHAINE_PKG_NAME + CHAINE_LOGO[p.getChaine()]);
+      RssItem nextItem = (i + 1 != rssFeed.length ? rssFeed[i + 1] : null);
+      Programme p = new Programme(
+        title: item.title.split('|').last.trim(),
+        category: item.categories.first.value,
+        chaine: item.title.split('|').first.trim(),
+        description: item.description,
+        heureDebut: _hourMinuteFormatter.parse(item.title.split('|')[1].trim()),
+        heureFin: (nextItem == null ||
+                nextItem.title
+                        .split('|')
+                        .first
+                        .trim()
+                        .compareTo(item.title.split('|').first.trim()) !=
+                    0)
+            ? _hourMinuteFormatter.parse('23:59')
+            : _hourMinuteFormatter.parse(nextItem.title.split('|')[1].trim()),
+        logoPath: CHAINE_LOGO.containsKey(item.title.split('|').first.trim())
+            ? CHAINE_PKG_NAME + CHAINE_LOGO[item.title.split('|').first.trim()]
+            : 'logo.png',
+      );
+      DateTimeRange dr =
+          new DateTimeRange(start: p.heureDebut, end: p.heureFin);
+      if (dr.start.isBefore(now)) {
+        if (dr.end.isAfter(now)) {
+          p.state = ProgrammeState.LIVE;
+          Duration durationSinceStart =
+              new DateTimeRange(start: p.heureDebut, end: now).duration;
+          Duration durationUntilEnd =
+              new DateTimeRange(start: now, end: p.heureFin).duration;
+          p.percentOfProgram =
+              (durationSinceStart.inSeconds / dr.duration.inSeconds);
+          if (durationSinceStart < durationUntilEnd) {
+            p.contextTime =
+                'Commencé depuis ' + _durationAsReadable(durationSinceStart);
+          } else {
+            p.contextTime =
+                'Fini dans ' + _durationAsReadable(durationUntilEnd);
+          }
+        } else {
+          p.state = ProgrammeState.FINISHED;
+          p.percentOfProgram = 1;
+        }
       } else {
-        p.setLogoPath('logo.png');
+        p.state = ProgrammeState.NOT_STARTED;
+        p.percentOfProgram = 0;
       }
       list.add(p);
     }
@@ -160,11 +247,11 @@ extension MappedTVList on Map<String, List<Programme>> {
     Map<String, List<Programme>> classedList = new Map();
     List<Programme> programList = ProgrammeTVList.fromRssFeed(rssFeed);
     for (int i = 0; i < programList.length; i++) {
-      if (classedList.keys.toList().contains(programList[i]._chaine)) {
-        classedList[programList[i]._chaine].add(programList[i]);
+      if (classedList.keys.toList().contains(programList[i].chaine)) {
+        classedList[programList[i].chaine].add(programList[i]);
       } else {
-        classedList[programList[i]._chaine] = [];
-        classedList[programList[i]._chaine].add(programList[i]);
+        classedList[programList[i].chaine] = [];
+        classedList[programList[i].chaine].add(programList[i]);
       }
     }
     return classedList;
