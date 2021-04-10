@@ -43,8 +43,8 @@ L'APK peut être téléchargé directement sur ce lien : [ici](https://github.co
 
 ### Expérience Utilisateur
 
-- [ ] Ajouter un mode programme/ chaîne par colonne.
-- [ ] Ajouter une alternative lorsqu'aucun programme n'est récupéré à cause d'une erreur, affichant le signe que les programmes n'ont pas pu être récupérés à l'emplacement usuel de la liste.
+- [X] Ajouter un mode programme/ chaîne par colonne.
+- [X] Ajouter une alternative lorsqu'aucun programme n'est récupéré à cause d'une erreur, affichant le signe que les programmes n'ont pas pu être récupérés à l'emplacement usuel de la liste.
 
 ### Technique
 
