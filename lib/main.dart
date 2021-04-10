@@ -256,6 +256,7 @@ class _HomePageState extends State<HomePage> {
               })),
       body: GestureDetector(
         onHorizontalDragUpdate: (details) {
+          print('Triggered' + this.isSwipeable.toString());
           if (_chaineList.isNotEmpty) {
             if (details.delta.dx > 0 && this.isSwipeable) {
               swipedEvent(Directions.LEFT);
@@ -333,108 +334,121 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               Expanded(
-                child: _chaineList.isEmpty
-                    ? DateTime.now().hour < 2
-                        ? Text(
-                            "Le programme n'est pas disponnible entre minuit et deux heures du matin, veuillez réessayer au delà de ces heures.")
-                        : RichText(
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text:
-                                      "Une erreur est survenue. Vérifiez votre connexion internet. Si vous essayez entre minuit et deux heures du matin, il se peut que le programme TV ne soit pas encore disponible.\n\n",
-                                ),
-                                TextSpan(
-                                  text:
-                                      "Autrement, vous êtes invités à remonter le bogue en envoyant un courriel à l'adresse suivante : loic.labeye@barentin.dev",
-                                ),
-                                WidgetSpan(
-                                    child: IconButton(
-                                      icon: Icon(
-                                        Icons.email,
-                                      ),
-                                      onPressed: () {
-                                        launch(DotEnv().env['mailto']);
-                                      },
-                                      iconSize: 14.0,
-                                    ),
-                                    alignment: PlaceholderAlignment.middle),
-                                TextSpan(
-                                  text:
-                                      "\n\nVous pouvez également directement reporter le bogue sur GitHub si vous êtes familier avec l'interface",
-                                ),
-                                WidgetSpan(
-                                    child: IconButton(
-                                      icon: Icon(
-                                        Icons.link,
-                                      ),
-                                      onPressed: () {
-                                        launch(DotEnv().env['github']);
-                                      },
-                                      iconSize: 14.0,
-                                    ),
-                                    alignment: PlaceholderAlignment.middle),
-                              ],
-                            ),
-                          )
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        scrollDirection: Axis.vertical,
-                        itemCount: _currentItemCount,
-                        itemBuilder: (context, index) {
-                          return Card(
-                            child: Column(
-                              children: <Widget>[
-                                ListTile(
-                                  leading: new Image.asset(
-                                    _currentItems[index].getLogoPath(),
-                                    height: 40,
-                                    width: 40,
+                  child: _chaineList.isEmpty
+                      ? DateTime.now().hour < 2
+                          ? Center(
+                              child: Text(
+                                  "Le programme n'est pas disponnible entre minuit et deux heures du matin, veuillez réessayer au delà de ces heures."))
+                          : Center(
+                              child: RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text:
+                                        "Une erreur est survenue. Vérifiez votre connexion internet. Si vous essayez entre minuit et deux heures du matin, il se peut que le programme TV ne soit pas encore disponible.\n\n",
                                   ),
-                                  enabled: _currentItems[index].state !=
-                                      ProgrammeState.FINISHED,
-                                  title: Text(_currentItems[index].getTitle()),
-                                  subtitle: _currentItems[index].state !=
-                                          ProgrammeState.LIVE
-                                      ? (Text(_currentItems[index].state !=
-                                              ProgrammeState.FINISHED
-                                          ? (_currentItems[index]
-                                              .getHeureDebutAsString())
-                                          : _currentItems[index]
-                                              .getHeureFinAsString()))
-                                      : Column(
-                                          children: <Widget>[
-                                            LinearProgressIndicator(
-                                              value: _currentItems[index]
-                                                  .percentOfProgram,
-                                              valueColor:
-                                                  new AlwaysStoppedAnimation<
-                                                          Color>(
-                                                      Colors.indigoAccent),
-                                            ),
-                                            Align(
-                                              alignment: Alignment.bottomLeft,
-                                              child: Text(
-                                                _currentItems[index]
-                                                    .contextTime,
-                                                style: TextStyle(fontSize: 10),
-                                              ),
-                                            )
-                                          ],
+                                  TextSpan(
+                                    text:
+                                        "Autrement, vous êtes invités à remonter le bogue en envoyant un courriel à l'adresse suivante : loic.labeye@barentin.dev",
+                                  ),
+                                  WidgetSpan(
+                                      child: IconButton(
+                                        icon: Icon(
+                                          Icons.email,
                                         ),
-                                  onLongPress: () {
-                                    Scaffold.of(context).showSnackBar(SnackBar(
-                                      content: Text(_currentItems[index]
-                                          .getDescription()),
-                                    ));
-                                  },
-                                )
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-              )
+                                        onPressed: () {
+                                          launch(DotEnv().env['mailto']);
+                                        },
+                                        iconSize: 14.0,
+                                      ),
+                                      alignment: PlaceholderAlignment.middle),
+                                  TextSpan(
+                                    text:
+                                        "\n\nVous pouvez également directement reporter le bogue sur GitHub si vous êtes familier avec l'interface",
+                                  ),
+                                  WidgetSpan(
+                                      child: IconButton(
+                                        icon: Icon(
+                                          Icons.link,
+                                        ),
+                                        onPressed: () {
+                                          launch(DotEnv().env['github']);
+                                        },
+                                        iconSize: 14.0,
+                                      ),
+                                      alignment: PlaceholderAlignment.middle),
+                                ],
+                              ),
+                            ))
+                      : _currentItemCount != 0
+                          ? ListView.builder(
+                              shrinkWrap: true,
+                              scrollDirection: Axis.vertical,
+                              itemCount: _currentItemCount,
+                              itemBuilder: (context, index) {
+                                return Card(
+                                  child: Column(
+                                    children: <Widget>[
+                                      ListTile(
+                                        leading: new Image.asset(
+                                          _currentItems[index].getLogoPath(),
+                                          height: 40,
+                                          width: 40,
+                                        ),
+                                        enabled: _currentItems[index].state !=
+                                            ProgrammeState.FINISHED,
+                                        title: Text(
+                                            _currentItems[index].getTitle()),
+                                        subtitle: _currentItems[index].state !=
+                                                ProgrammeState.LIVE
+                                            ? (Text(_currentItems[index]
+                                                        .state !=
+                                                    ProgrammeState.FINISHED
+                                                ? (_currentItems[index]
+                                                    .getHeureDebutAsString())
+                                                : _currentItems[index]
+                                                    .getHeureFinAsString()))
+                                            : Column(
+                                                children: <Widget>[
+                                                  LinearProgressIndicator(
+                                                    value: _currentItems[index]
+                                                        .percentOfProgram,
+                                                    valueColor:
+                                                        new AlwaysStoppedAnimation<
+                                                                Color>(
+                                                            Colors
+                                                                .indigoAccent),
+                                                  ),
+                                                  Align(
+                                                    alignment:
+                                                        Alignment.bottomLeft,
+                                                    child: Text(
+                                                      _currentItems[index]
+                                                          .contextTime,
+                                                      style: TextStyle(
+                                                          fontSize: 10),
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                        onLongPress: () {
+                                          Scaffold.of(context)
+                                              .showSnackBar(SnackBar(
+                                            content: Text(_currentItems[index]
+                                                .getDescription()),
+                                          ));
+                                        },
+                                      )
+                                    ],
+                                  ),
+                                );
+                              },
+                            )
+                          : ListTile(
+                              title: Text('Non disponible pour ce créneau'),
+                              leading: new Image(
+                                  image: AssetImage('logos/logo.png')),
+                            ))
             ],
           ),
         ),
