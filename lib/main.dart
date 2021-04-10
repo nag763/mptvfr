@@ -245,214 +245,215 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-          title: Text(widget.title),
-          leading: IconButton(
-              icon: new Image(
-                image: AssetImage('logos/logo.png'),
-              ),
-              onPressed: () {
-                showInfo();
-              })),
-      body: GestureDetector(
-        onHorizontalDragUpdate: (details) {
-          print('Triggered' + this.isSwipeable.toString());
-          if (_chaineList.isNotEmpty) {
-            if (details.delta.dx > 0 && this.isSwipeable) {
-              swipedEvent(Directions.LEFT);
-              this.isSwipeable = false;
-            } else if (details.delta.dx < 0 && this.isSwipeable) {
-              swipedEvent(Directions.RIGHT);
-              this.isSwipeable = false;
-            }
-          }
-        },
-        onHorizontalDragEnd: (details) {
-          this.isSwipeable = true;
-        },
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.max,
-            children: <Widget>[
-              ListTile(
-                trailing: IconButton(
-                  icon: new Icon(Icons.refresh),
-                  onPressed: () {
-                    fetchRSS();
-                  },
+        appBar: AppBar(
+            title: Text(widget.title),
+            leading: IconButton(
+                icon: new Image(
+                  image: AssetImage('logos/logo.png'),
                 ),
-                title: Text(_title.isEmpty
-                    ? 'Aucune information n\'a pu être chargée'
-                    : _title),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                      child: Stack(children: [
+                onPressed: () {
+                  showInfo();
+                })),
+        body: GestureDetector(
+          onHorizontalDragUpdate: (details) {
+            if (_chaineList.isNotEmpty) {
+              if (details.delta.dx > 0 && this.isSwipeable) {
+                swipedEvent(Directions.LEFT);
+                this.isSwipeable = false;
+              } else if (details.delta.dx < 0 && this.isSwipeable) {
+                swipedEvent(Directions.RIGHT);
+                this.isSwipeable = false;
+              }
+            }
+          },
+          onHorizontalDragEnd: (details) {
+            this.isSwipeable = true;
+          },
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
+              children: <Widget>[
+                ListTile(
+                  trailing: IconButton(
+                    icon: new Icon(Icons.refresh),
+                    onPressed: () {
+                      fetchRSS();
+                    },
+                  ),
+                  title: Text(_title.isEmpty
+                      ? 'Aucune information n\'a pu être chargée'
+                      : _title),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Expanded(
+                        child: Stack(children: [
+                      DropdownButton<String>(
+                        icon: Icon(Icons.airplay),
+                        onChanged: (String newValue) {
+                          if (currentDTSelector.compareTo('Maintenant') == 0) {
+                            currentDTSelector = dtSelectors.keys.last;
+                          }
+                          setState(() {
+                            changeList(_keys.indexOf(newValue));
+                          });
+                        },
+                        items: _keys.map<DropdownMenuItem<String>>((value) {
+                          return DropdownMenuItem<String>(
+                            child: Text(value, style: TextStyle(fontSize: 12)),
+                            value: value,
+                          );
+                        }).toList(),
+                        value: currentDTSelector.compareTo('Maintenant') != 0
+                            ? _currentKey
+                            : null,
+                      ),
+                    ])),
                     DropdownButton<String>(
-                      icon: Icon(Icons.airplay),
+                      icon: Icon(Icons.access_time),
                       onChanged: (String newValue) {
-                        if (currentDTSelector.compareTo('Maintenant') == 0) {
-                          currentDTSelector = dtSelectors.keys.last;
-                        }
                         setState(() {
-                          changeList(_keys.indexOf(newValue));
+                          currentDTSelector = newValue;
+                          changeList(_keys.indexOf(_currentKey));
                         });
                       },
-                      items: _keys.map<DropdownMenuItem<String>>((value) {
+                      items: dtSelectors.keys
+                          .map<DropdownMenuItem<String>>((value) {
                         return DropdownMenuItem<String>(
                           child: Text(value, style: TextStyle(fontSize: 12)),
                           value: value,
                         );
                       }).toList(),
-                      value: currentDTSelector.compareTo('Maintenant') != 0
-                          ? _currentKey
-                          : null,
+                      value: currentDTSelector,
                     ),
-                  ])),
-                  DropdownButton<String>(
-                    icon: Icon(Icons.access_time),
-                    onChanged: (String newValue) {
-                      setState(() {
-                        currentDTSelector = newValue;
-                        changeList(_keys.indexOf(_currentKey));
-                      });
-                    },
-                    items:
-                        dtSelectors.keys.map<DropdownMenuItem<String>>((value) {
-                      return DropdownMenuItem<String>(
-                        child: Text(value, style: TextStyle(fontSize: 12)),
-                        value: value,
-                      );
-                    }).toList(),
-                    value: currentDTSelector,
-                  ),
-                ],
-              ),
-              Expanded(
-                  child: _chaineList.isEmpty
-                      ? DateTime.now().hour < 2
-                          ? Center(
-                              child: Text(
-                                  "Le programme n'est pas disponnible entre minuit et deux heures du matin, veuillez réessayer au delà de ces heures."))
-                          : Center(
-                              child: RichText(
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text:
-                                        "Une erreur est survenue. Vérifiez votre connexion internet. Si vous essayez entre minuit et deux heures du matin, il se peut que le programme TV ne soit pas encore disponible.\n\n",
-                                  ),
-                                  TextSpan(
-                                    text:
-                                        "Autrement, vous êtes invités à remonter le bogue en envoyant un courriel à l'adresse suivante : loic.labeye@barentin.dev",
-                                  ),
-                                  WidgetSpan(
-                                      child: IconButton(
-                                        icon: Icon(
-                                          Icons.email,
+                  ],
+                ),
+                Expanded(
+                    child: _chaineList.isEmpty
+                        ? DateTime.now().hour < 2
+                            ? Center(
+                                child: Text(
+                                    "Le programme n'est pas disponnible entre minuit et deux heures du matin, veuillez réessayer au delà de ces heures."))
+                            : Center(
+                                child: RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text:
+                                          "Une erreur est survenue. Vérifiez votre connexion internet. Si vous essayez entre minuit et deux heures du matin, il se peut que le programme TV ne soit pas encore disponible.\n\n",
+                                    ),
+                                    TextSpan(
+                                      text:
+                                          "Autrement, vous êtes invités à remonter le bogue en envoyant un courriel à l'adresse suivante : loic.labeye@barentin.dev",
+                                    ),
+                                    WidgetSpan(
+                                        child: IconButton(
+                                          icon: Icon(
+                                            Icons.email,
+                                          ),
+                                          onPressed: () {
+                                            launch(DotEnv().env['mailto']);
+                                          },
+                                          iconSize: 14.0,
                                         ),
-                                        onPressed: () {
-                                          launch(DotEnv().env['mailto']);
-                                        },
-                                        iconSize: 14.0,
-                                      ),
-                                      alignment: PlaceholderAlignment.middle),
-                                  TextSpan(
-                                    text:
-                                        "\n\nVous pouvez également directement reporter le bogue sur GitHub si vous êtes familier avec l'interface",
-                                  ),
-                                  WidgetSpan(
-                                      child: IconButton(
-                                        icon: Icon(
-                                          Icons.link,
+                                        alignment: PlaceholderAlignment.middle),
+                                    TextSpan(
+                                      text:
+                                          "\n\nVous pouvez également directement reporter le bogue sur GitHub si vous êtes familier avec l'interface",
+                                    ),
+                                    WidgetSpan(
+                                        child: IconButton(
+                                          icon: Icon(
+                                            Icons.link,
+                                          ),
+                                          onPressed: () {
+                                            launch(DotEnv().env['github']);
+                                          },
+                                          iconSize: 14.0,
                                         ),
-                                        onPressed: () {
-                                          launch(DotEnv().env['github']);
-                                        },
-                                        iconSize: 14.0,
-                                      ),
-                                      alignment: PlaceholderAlignment.middle),
-                                ],
-                              ),
-                            ))
-                      : _currentItemCount != 0
-                          ? ListView.builder(
-                              shrinkWrap: true,
-                              scrollDirection: Axis.vertical,
-                              itemCount: _currentItemCount,
-                              itemBuilder: (context, index) {
-                                return Card(
-                                  child: Column(
-                                    children: <Widget>[
-                                      ListTile(
-                                        leading: new Image.asset(
-                                          _currentItems[index].getLogoPath(),
-                                          height: 40,
-                                          width: 40,
-                                        ),
-                                        enabled: _currentItems[index].state !=
-                                            ProgrammeState.FINISHED,
-                                        title: Text(
-                                            _currentItems[index].getTitle()),
-                                        subtitle: _currentItems[index].state !=
-                                                ProgrammeState.LIVE
-                                            ? (Text(_currentItems[index]
-                                                        .state !=
-                                                    ProgrammeState.FINISHED
-                                                ? (_currentItems[index]
-                                                    .getHeureDebutAsString())
-                                                : _currentItems[index]
-                                                    .getHeureFinAsString()))
-                                            : Column(
-                                                children: <Widget>[
-                                                  LinearProgressIndicator(
-                                                    value: _currentItems[index]
-                                                        .percentOfProgram,
-                                                    valueColor:
-                                                        new AlwaysStoppedAnimation<
-                                                                Color>(
-                                                            Colors
-                                                                .indigoAccent),
-                                                  ),
-                                                  Align(
-                                                    alignment:
-                                                        Alignment.bottomLeft,
-                                                    child: Text(
-                                                      _currentItems[index]
-                                                          .contextTime,
-                                                      style: TextStyle(
-                                                          fontSize: 10),
+                                        alignment: PlaceholderAlignment.middle),
+                                  ],
+                                ),
+                              ))
+                        : _currentItemCount != 0
+                            ? ListView.builder(
+                                shrinkWrap: true,
+                                scrollDirection: Axis.vertical,
+                                itemCount: _currentItemCount,
+                                itemBuilder: (context, index) {
+                                  return Card(
+                                    child: Column(
+                                      children: <Widget>[
+                                        ListTile(
+                                          leading: new Image.asset(
+                                            _currentItems[index].getLogoPath(),
+                                            height: 40,
+                                            width: 40,
+                                          ),
+                                          enabled: _currentItems[index].state !=
+                                              ProgrammeState.FINISHED,
+                                          title: Text(
+                                              _currentItems[index].getTitle()),
+                                          subtitle: _currentItems[index]
+                                                      .state !=
+                                                  ProgrammeState.LIVE
+                                              ? (Text(_currentItems[index]
+                                                          .state !=
+                                                      ProgrammeState.FINISHED
+                                                  ? (_currentItems[index]
+                                                      .getHeureDebutAsString())
+                                                  : _currentItems[index]
+                                                      .getHeureFinAsString()))
+                                              : Column(
+                                                  children: <Widget>[
+                                                    LinearProgressIndicator(
+                                                      value:
+                                                          _currentItems[index]
+                                                              .percentOfProgram,
+                                                      valueColor:
+                                                          new AlwaysStoppedAnimation<
+                                                                  Color>(
+                                                              Colors
+                                                                  .indigoAccent),
                                                     ),
-                                                  )
-                                                ],
-                                              ),
-                                        onLongPress: () {
-                                          Scaffold.of(context)
-                                              .showSnackBar(SnackBar(
-                                            content: Text(_currentItems[index]
-                                                .getDescription()),
-                                          ));
-                                        },
-                                      )
-                                    ],
-                                  ),
-                                );
-                              },
-                            )
-                          : ListTile(
-                              title: Text('Non disponible pour ce créneau'),
-                              leading: new Image(
-                                  image: AssetImage('logos/logo.png')),
-                            ))
-            ],
+                                                    Align(
+                                                      alignment:
+                                                          Alignment.bottomLeft,
+                                                      child: Text(
+                                                        _currentItems[index]
+                                                            .contextTime,
+                                                        style: TextStyle(
+                                                            fontSize: 10),
+                                                      ),
+                                                    )
+                                                  ],
+                                                ),
+                                          onLongPress: () {
+                                            Scaffold.of(context)
+                                                .showSnackBar(SnackBar(
+                                              content: Text(_currentItems[index]
+                                                  .getDescription()),
+                                            ));
+                                          },
+                                        )
+                                      ],
+                                    ),
+                                  );
+                                },
+                              )
+                            : ListTile(
+                                title: Text('Non disponible pour ce créneau'),
+                                leading: new Image(
+                                    image: AssetImage('logos/logo.png')),
+                              ))
+              ],
+            ),
           ),
         ),
-      ),
-    );
+        bottomNavigationBar: Text('©2021 MPTVFR', textAlign: TextAlign.center));
   }
 }
