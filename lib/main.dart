@@ -115,9 +115,10 @@ class _HomePageState extends State<HomePage> {
             .programmes
             .sortBetweenDR(dtSelectors[currentDTSelector]);
       } else {
-        _currentItems = _chaineList[keyNumber]
-            .programmes
-            .where((p) => p.state.index == ProgrammeState.LIVE.index)
+        _currentItems = _chaineList
+            .map((e) => e.programmes
+                .where((p) => p.state.index == ProgrammeState.LIVE.index)
+                .first)
             .toList();
       }
     } else {
@@ -294,6 +295,9 @@ class _HomePageState extends State<HomePage> {
                     DropdownButton<String>(
                       icon: Icon(Icons.airplay),
                       onChanged: (String newValue) {
+                        if (currentDTSelector.compareTo('Maintenant') == 0) {
+                          currentDTSelector = dtSelectors.keys.last;
+                        }
                         setState(() {
                           changeList(_keys.indexOf(newValue));
                         });
@@ -304,7 +308,9 @@ class _HomePageState extends State<HomePage> {
                           value: value,
                         );
                       }).toList(),
-                      value: _currentKey,
+                      value: currentDTSelector.compareTo('Maintenant') != 0
+                          ? _currentKey
+                          : null,
                     ),
                   ])),
                   DropdownButton<String>(
