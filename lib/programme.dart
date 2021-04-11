@@ -201,7 +201,7 @@ extension ProgrammeTVList on List<Programme> {
       );
       DateTimeRange dr =
           new DateTimeRange(start: p.heureDebut, end: p.heureFin);
-      if (dr.start.isBefore(now)) {
+      if (dr.start.isBefore(now) || dr.start == now) {
         if (dr.end.isAfter(now)) {
           p.state = ProgrammeState.LIVE;
           Duration durationSinceStart =

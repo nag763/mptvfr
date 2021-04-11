@@ -115,11 +115,14 @@ class _HomePageState extends State<HomePage> {
             .programmes
             .sortBetweenDR(dtSelectors[currentDTSelector]);
       } else {
-        _currentItems = _chaineList
-            .map((e) => e.programmes
-                .where((p) => p.state.index == ProgrammeState.LIVE.index)
-                .first)
-            .toList();
+        _currentItems = _chaineList.map((e) {
+          List<Programme> programmes = e.programmes
+              .where((p) => p.state.index == ProgrammeState.LIVE.index)
+              .toList();
+          if (programmes.isNotEmpty) {
+            return programmes.first;
+          }
+        }).toList();
       }
     } else {
       _currentItems = _chaineList[keyNumber].programmes;
@@ -208,6 +211,8 @@ class _HomePageState extends State<HomePage> {
           pr.hide();
         }
       }).onError((error, stackTrace) {
+        print(error);
+        print(stackTrace);
         Fluttertoast.showToast(
           msg: "Une erreur est survenue.",
           toastLength: Toast.LENGTH_SHORT,
@@ -385,64 +390,76 @@ class _HomePageState extends State<HomePage> {
                                 scrollDirection: Axis.vertical,
                                 itemCount: _currentItemCount,
                                 itemBuilder: (context, index) {
-                                  return Card(
-                                    child: Column(
-                                      children: <Widget>[
-                                        ListTile(
-                                          leading: new Image.asset(
-                                            _currentItems[index].getLogoPath(),
-                                            height: 40,
-                                            width: 40,
-                                          ),
-                                          enabled: _currentItems[index].state !=
-                                              ProgrammeState.FINISHED,
-                                          title: Text(
-                                              _currentItems[index].getTitle()),
-                                          subtitle: _currentItems[index]
-                                                      .state !=
-                                                  ProgrammeState.LIVE
-                                              ? (Text(_currentItems[index]
-                                                          .state !=
-                                                      ProgrammeState.FINISHED
-                                                  ? (_currentItems[index]
-                                                      .getHeureDebutAsString())
-                                                  : _currentItems[index]
-                                                      .getHeureFinAsString()))
-                                              : Column(
-                                                  children: <Widget>[
-                                                    LinearProgressIndicator(
-                                                      value:
-                                                          _currentItems[index]
-                                                              .percentOfProgram,
-                                                      valueColor:
-                                                          new AlwaysStoppedAnimation<
-                                                                  Color>(
-                                                              Colors
-                                                                  .indigoAccent),
-                                                    ),
-                                                    Align(
-                                                      alignment:
-                                                          Alignment.bottomLeft,
-                                                      child: Text(
-                                                        _currentItems[index]
-                                                            .contextTime,
-                                                        style: TextStyle(
-                                                            fontSize: 10),
+                                  if (_currentItems[index] != null) {
+                                    return Card(
+                                      child: Column(
+                                        children: <Widget>[
+                                          ListTile(
+                                            leading: new Image.asset(
+                                              _currentItems[index]
+                                                  .getLogoPath(),
+                                              height: 40,
+                                              width: 40,
+                                            ),
+                                            enabled:
+                                                _currentItems[index].state !=
+                                                    ProgrammeState.FINISHED,
+                                            title: Text(_currentItems[index]
+                                                .getTitle()),
+                                            subtitle: _currentItems[index]
+                                                        .state !=
+                                                    ProgrammeState.LIVE
+                                                ? (Text(_currentItems[index]
+                                                            .state !=
+                                                        ProgrammeState.FINISHED
+                                                    ? (_currentItems[index]
+                                                        .getHeureDebutAsString())
+                                                    : _currentItems[index]
+                                                        .getHeureFinAsString()))
+                                                : Column(
+                                                    children: <Widget>[
+                                                      LinearProgressIndicator(
+                                                        value: _currentItems[
+                                                                index]
+                                                            .percentOfProgram,
+                                                        valueColor:
+                                                            new AlwaysStoppedAnimation<
+                                                                    Color>(
+                                                                Colors
+                                                                    .indigoAccent),
                                                       ),
-                                                    )
-                                                  ],
-                                                ),
-                                          onLongPress: () {
-                                            Scaffold.of(context)
-                                                .showSnackBar(SnackBar(
-                                              content: Text(_currentItems[index]
-                                                  .getDescription()),
-                                            ));
-                                          },
-                                        )
-                                      ],
-                                    ),
-                                  );
+                                                      Align(
+                                                        alignment: Alignment
+                                                            .bottomLeft,
+                                                        child: Text(
+                                                          _currentItems[index]
+                                                              .contextTime,
+                                                          style: TextStyle(
+                                                              fontSize: 10),
+                                                        ),
+                                                      )
+                                                    ],
+                                                  ),
+                                            onLongPress: () {
+                                              Scaffold.of(context)
+                                                  .showSnackBar(SnackBar(
+                                                content: Text(
+                                                    _currentItems[index]
+                                                        .getDescription()),
+                                              ));
+                                            },
+                                          )
+                                        ],
+                                      ),
+                                    );
+                                  } else {
+                                    return ListTile(
+                                      title: Text(
+                                          'Non disponible pour ce créneau'),
+                                      leading: new Image(
+                                          image: AssetImage('logos/logo.png')),
+                                    );
+                                  }
                                 },
                               )
                             : ListTile(
