@@ -341,8 +341,12 @@ class _HomePageState extends State<HomePage> {
                     child: _chaineList.isEmpty
                         ? DateTime.now().hour < 2
                             ? Center(
-                                child: Text(
-                                    "Le programme n'est pas disponnible entre minuit et deux heures du matin, veuillez réessayer au delà de ces heures."))
+                                child: ListTile(
+                                title: Text(
+                                    'Le programme télé n\'est pas disponible entre minuit et deux heures du matin, veuillez réesayer plus tard'),
+                                leading: new Image(
+                                    image: AssetImage('logos/logo.png')),
+                              ))
                             : Center(
                                 child: RichText(
                                 text: TextSpan(
@@ -454,8 +458,7 @@ class _HomePageState extends State<HomePage> {
                                     );
                                   } else {
                                     return ListTile(
-                                      title: Text(
-                                          'Non disponible pour ce créneau'),
+                                      title: Text('Non disponible'),
                                       leading: new Image(
                                           image: AssetImage('logos/logo.png')),
                                     );
