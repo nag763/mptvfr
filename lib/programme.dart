@@ -215,7 +215,7 @@ extension ProgrammeTVList on List<Programme> {
                 'Commencé depuis ' + _durationAsReadable(durationSinceStart);
           } else {
             p.contextTime =
-                'Fini dans ' + _durationAsReadable(durationUntilEnd);
+                'Se termine dans ' + _durationAsReadable(durationUntilEnd);
           }
         } else {
           p.state = ProgrammeState.FINISHED;
